@@ -5,6 +5,7 @@ package telnet
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -367,7 +368,7 @@ func (c *Conn) readUntil(read bool, delims ...string) ([]byte, int, error) {
 			}
 		}
 	}
-	panic(nil)
+	return nil, 0, errors.New("Unknown error reading from telnet connection at github.com/atlonaeng/telnet.readUntil.")
 }
 
 // ReadUntilIndex reads from connection until one of delimiters occurs. Returns
