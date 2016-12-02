@@ -4,7 +4,6 @@ package telnet
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
 	"net"
@@ -397,38 +396,45 @@ func (c *Conn) SkipUntil(delims ...string) error {
 
 // Write is for implement an io.Writer interface
 func (c *Conn) Write(buf []byte) (int, error) {
-	search := "\xff"
-	if c.unixWriteMode {
-		search = "\xff\n"
-	}
+	// search := "\xff"
+	// if c.unixWriteMode {
+	// 	search = "\xff\n"
+	// }
 	var (
 		n   int
 		err error
 	)
-	for len(buf) > 0 {
-		var k int
-		i := bytes.IndexAny(buf, search)
-		if i == -1 {
-			k, err = c.Conn.Write(buf)
-			n += k
-			break
-		}
-		k, err = c.Conn.Write(buf[:i])
-		n += k
-		if err != nil {
-			break
-		}
-		switch buf[i] {
-		case LF:
-			k, err = c.Conn.Write([]byte{CR, LF})
-		case cmdIAC:
-			k, err = c.Conn.Write([]byte{cmdIAC, cmdIAC})
-		}
-		n += k
-		if err != nil {
-			break
-		}
-		buf = buf[i+1:]
-	}
+	var k int
+
+	k, err = c.Conn.Write(buf)
+	n += k
+
+	// for len(buf) > 0 {
+	// 	var k int
+	// 	i := bytes.IndexAny(buf, search)
+	// 	if i == -1 {
+	// 		log.Printf("%+v\n", buf)
+	// 		k, err = c.Conn.Write(buf)
+	// 		n += k
+	// 		break
+	// 	}
+	// 	k, err = c.Conn.Write(buf[:i])
+	// 	n += k
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	switch buf[i] {
+	// 	case LF:
+	// 		log.Println("asdfasfadfs")
+	// 		k, err = c.Conn.Write([]byte{CR, LF})
+	// 	case cmdIAC:
+	// 		k, err = c.Conn.Write([]byte{cmdIAC, cmdIAC})
+	// 	}
+	// 	n += k
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	buf = buf[i+1:]
+	// }
 	return n, err
 }
