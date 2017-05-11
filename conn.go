@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/atlonaeng/studio/sessionFunctions"
 	"net"
 	"time"
 	"unicode"
@@ -44,36 +45,43 @@ const (
 // Telnet specific methods.
 type Conn struct {
 	net.Conn
-	r *bufio.Reader
-
+	r             *bufio.Reader
+	deviceId      string
 	unixWriteMode bool
 
 	cliSuppressGoAhead bool
 	cliEcho            bool
 }
 
-func NewConn(conn net.Conn) (*Conn, error) {
+func NewConn(conn net.Conn, deviceId string) (*Conn, error) {
 	c := Conn{
-		Conn: conn,
-		r:    bufio.NewReaderSize(conn, 256),
+		Conn:     conn,
+		deviceId: deviceId,
+		r:        bufio.NewReaderSize(conn, 256),
 	}
 	return &c, nil
 }
 
-func Dial(network, addr string) (*Conn, error) {
+func Dial(network, addr string, deviceId string) (*Conn, error) {
 	conn, err := net.Dial(network, addr)
 	if err != nil {
 		return nil, err
 	}
-	return NewConn(conn)
+	return NewConn(conn, deviceId)
 }
 
-func DialTimeout(network, addr string, timeout time.Duration) (*Conn, error) {
+func DialTimeout(network, addr string, timeout time.Duration, deviceId string) (*Conn, error) {
 	conn, err := net.DialTimeout(network, addr, timeout)
 	if err != nil {
 		return nil, err
 	}
-	return NewConn(conn)
+	return NewConn(conn, deviceId)
+}
+
+// SetUnixWriteMode sets flag that applies only to the Write method.
+// If set, Write converts any '\n' (LF) to '\r\n' (CR LF).
+func (c *Conn) log(area string, msg string) {
+	session_functions.Log(c.deviceId, "conn->"+area, msg)
 }
 
 // SetUnixWriteMode sets flag that applies only to the Write method.
@@ -407,6 +415,13 @@ func (c *Conn) Write(buf []byte) (int, error) {
 	var k int
 
 	k, err = c.Conn.Write(buf)
+
+	if err == nil {
+		c.log("Write", string(buf))
+	} else {
+		c.log("ErrWrite ("+err.Error()+")", string(buf))
+	}
+
 	n += k
 
 	// for len(buf) > 0 {
