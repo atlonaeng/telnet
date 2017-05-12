@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/atlonaeng/studio/sessionFunctions"
 	"net"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -416,10 +417,12 @@ func (c *Conn) Write(buf []byte) (int, error) {
 
 	k, err = c.Conn.Write(buf)
 
-	if err == nil {
-		c.log("Write", string(buf))
-	} else {
-		c.log("ErrWrite ("+err.Error()+")", string(buf))
+	if strings.Index(string(buf), "Type") == -1 {
+		if err == nil {
+			c.log("Write", string(buf))
+		} else {
+			c.log("ErrWrite ("+err.Error()+")", string(buf))
+		}
 	}
 
 	n += k
