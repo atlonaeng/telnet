@@ -409,6 +409,13 @@ func (c *Conn) Write(buf []byte) (int, error) {
 	// if c.unixWriteMode {
 	// 	search = "\xff\n"
 	// }
+	defer func() {
+		if r := recover(); r != nil {
+			c.log("telnet/conn.go", "Panic Recovered at drivers.telnet.Write")
+			return
+		}
+	}()
+
 	var (
 		n   int
 		err error
